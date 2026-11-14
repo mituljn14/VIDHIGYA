@@ -1,0 +1,34 @@
+{
+ "frozen_at": "2026-11-13 08:49:03",
+ "configuration": {
+  "name": "VIDHIGYA agentic (K12 arm F)",
+  "architecture": "agentic",
+  "retrieval": "BM25 + intfloat/multilingual-e5-large -> RRF(k=60) -> BAAI/bge-reranker-v2-m3 (pool 30)",
+  "paragraphs": "inDoc3+docprior",
+  "context": "<= 8 x 1500 chars",
+  "generator": "gemma3:12b",
+  "verification": "claim_split v2 + per-claim check",
+  "gate": "det",
+  "agent": "understand -> retrieve -> pool<=8 -> coverage -> follow-up<=2 -> synthesize -> verify -> gate",
+  "validation": "K12 DEV: arm F selected (0.679, pre-registered rule, 2026-11-13 02:16); K14 TEST (139 q): 0.633 [0.550, 0.709] vs fixed 0.561 (n.s.), single-pass 0.446 (p<0.001), frozen B 0.065 (p<0.001); automatic 3-LLM-judge majority, not human legal review; below the 0.80 minimum"
+ },
+ "generator_digest": "b92b218582c521ba287f38f1d6057dcd3c6cbff036f13cac97b5d861f5e58ec3 (gemma3:12b, same digest as Kaggle K12/K13/K14 runs)",
+ "agent_code_identical_to_tested": true,
+ "tested_by": "K13 GPU system test 2026-11-13 00:32 (89/90 checks). Changed after that test, display/reporting only: config.py AGENT_VALIDATION label; main.py /api/evaluation adds the agentic results; frontend dashboard/architecture/landing text. Answering pipeline files (agent.py, vidhigya_agent.py, pipeline.py, generation.py, retrieval.py, frozen/) unchanged since the test.",
+ "sha256": {
+  "app/frozen/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "app/frozen/prompt.py": "b41b46a72f90dcbbe238e477c356034b29672e52c43ce691a7d17c9bf61df06f",
+  "app/frozen/structured_citations.py": "070ddf0d360317e84d9abd75aeb945efe659d2bf100dcbaac0c049d3c715dcf9",
+  "app/frozen/text_utils.py": "dcf3506328b5496d563df8dbfcdadea997cdd6e2bb5e80daa162fab7610ebb13",
+  "app/schema.sql": "a43c99305b84c1da3e58a84a318e7f0dab102a249bfd3651cfdff0ba75368ea4",
+  "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "app/agent.py": "de536301c5e4e3d85c0bb29638fc10122a9f705ca4474aa8abc3d3f02d5f2b66",
+  "app/config.py": "08c1d70464f021d3918de8f10d4128df171804a9eab667c8c05676f6226247bd",
+  "app/generation.py": "844135c15f49071c231a399e7219557d4271beaad288cbf95704faba17d40045",
+  "app/main.py": "4381251f10b9885b90c700d23ba096259b109c00349d1d48d05cfbe59e784959",
+  "app/pipeline.py": "4c7ef4f9a6d67c71f42587b1baca6ff8f539ae2ec9890821770ba89fa9365976",
+  "app/retrieval.py": "d9eca22c6a141fe1ad48a656ac652910fb2c8aa0a844a2d6fed9d83b3f236015",
+  "app/vidhigya_agent.py": "73c17d875696f097c8c9d954c402dc1fada03acde7aea6a786bad4985a7a3d05",
+  "requirements.txt": "0a1a12154fee4f51cc972fbf6782a11d69386d3ab99be7bdf24d2ddb7efdd26f"
+ }
+}

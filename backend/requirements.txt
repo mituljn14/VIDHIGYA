@@ -1,0 +1,11 @@
+fastapi>=0.115
+uvicorn>=0.30
+pydantic>=2.7
+numpy>=1.26
+rank-bm25>=0.2.2
+sentence-transformers>=3.0
+torch>=2.2
+qdrant-client>=1.9
+pypdfium2>=4.30
+easyocr>=1.7
+python-multipart>=0.0.9

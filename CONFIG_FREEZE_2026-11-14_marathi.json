@@ -1,0 +1,29 @@
+{
+ "frozen_at": "2026-11-14T15:01:08",
+ "change": "full-Marathi mode (query translated once to Marathi; see CHANGE_2026-11-14_UPLOADS.md)",
+ "previous_freezes": [
+  "CONFIG_FREEZE_2026-11-13.json",
+  "CONFIG_FREEZE_2026-11-14_uploads.json"
+ ],
+ "evaluated_agent_unchanged": true,
+ "formally_evaluated": false,
+ "planned_test": "NEW-34b",
+ "sha256": {
+  "app/qtranslate.py": "242608d2afc83b76a527df578cb308e3a42cf818e6d4371ea6ab77e02e930fab",
+  "app/pipeline.py": "dbfa772f0237babf380bdb32c2e8f68fa2ad6612ba8147bea469a1cf84350c8f",
+  "app/config.py": "6eaa772d3964f440d9a0070eb733eff039954ee70344a93e6d7c0002595cea2a",
+  "app/agent.py": "f928f82248588147defeae461d789b5d76f6dad2f49c8a0caeb2e87bea1a8a40",
+  "app/retrieval.py": "a482da10fd8421e5c43677ef90cb039f12714d9726e2900fae01a1b1d6cb9dfd",
+  "app/generation.py": "80a93c8520a808663d8668ad616d87eb58c39149fbf28ce0a5a40f76d702754d",
+  "app/main.py": "0aeb73edd2ab0ec6229ebec06301b96be518fccf40cce4d8829ff97f7a982bfb",
+  "app/ingest.py": "1bd30d647bebe54953f122cb0876f698c4d348e7b8f345761f873addc9328ffc",
+  "app/chunking.py": "85302d877541e6a62cc344e31fc74bab1aaff041f95ad2ee230e3bdbad8d169f",
+  "app/auth.py": "4964421b3cd32058f0cc19f080836002a0d5eb3d377edd572aedd167836ff810",
+  "app/frozen/prompt.py": "b41b46a72f90dcbbe238e477c356034b29672e52c43ce691a7d17c9bf61df06f",
+  "app/frozen/structured_citations.py": "070ddf0d360317e84d9abd75aeb945efe659d2bf100dcbaac0c049d3c715dcf9",
+  "app/frozen/text_utils.py": "dcf3506328b5496d563df8dbfcdadea997cdd6e2bb5e80daa162fab7610ebb13",
+  "../frontend/src/components/RunView.tsx": "5b220e2c7a3527efb0c2e483837b7336686f64eff6343347f1808ec56c2661de",
+  "../frontend/src/api.ts": "4f9f0d092fe623c9e44a8b32610d5ddd2220a7752fcd8db5b65c2f342940d803",
+  "../frontend/src/i18n.tsx": "de0e35c2019f3113c5a4236c2c69fb89e9e9805f984569c55abea5afed881ea9"
+ }
+}

@@ -1,0 +1,21 @@
+# runtime data, models and databases (large or private; see README "Data")
+data/
+models/
+database/
+logs/
+
+# secrets and local settings
+.env
+*.env
+access_token*
+kaggle.json
+admin_auth.json
+
+# build output and dependencies
+frontend/node_modules/
+frontend/dist/
+frontend/tsconfig.tsbuildinfo
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/

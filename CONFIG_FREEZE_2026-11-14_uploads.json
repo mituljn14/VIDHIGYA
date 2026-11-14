@@ -1,0 +1,29 @@
+{
+ "frozen_at": "2026-11-14T11:22:04",
+ "change": "judgment upload & ingestion (see CHANGE_2026-11-14_UPLOADS.md)",
+ "previous_freeze": "CONFIG_FREEZE_2026-11-13.json (unchanged, kept as evidence)",
+ "evaluated_agent_unchanged": true,
+ "sha256": {
+  "app/frozen/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "app/frozen/prompt.py": "b41b46a72f90dcbbe238e477c356034b29672e52c43ce691a7d17c9bf61df06f",
+  "app/frozen/structured_citations.py": "070ddf0d360317e84d9abd75aeb945efe659d2bf100dcbaac0c049d3c715dcf9",
+  "app/frozen/text_utils.py": "dcf3506328b5496d563df8dbfcdadea997cdd6e2bb5e80daa162fab7610ebb13",
+  "app/schema.sql": "a43c99305b84c1da3e58a84a318e7f0dab102a249bfd3651cfdff0ba75368ea4",
+  "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "app/agent.py": "f928f82248588147defeae461d789b5d76f6dad2f49c8a0caeb2e87bea1a8a40",
+  "app/config.py": "8ab26317e62333d4f29118f6edcaef1bfe5f17cc3b7d9d1ae9c4129d804c264c",
+  "app/generation.py": "80a93c8520a808663d8668ad616d87eb58c39149fbf28ce0a5a40f76d702754d",
+  "app/main.py": "03d4afeb9f7e8c3ce932bc614ba0dd31d9005b1b8a3264220cdb9d0326a571f8",
+  "app/pipeline.py": "945e751a493043572e705e0b46d95ec76947e76e2cc867242f9724fb49f11943",
+  "app/retrieval.py": "a482da10fd8421e5c43677ef90cb039f12714d9726e2900fae01a1b1d6cb9dfd",
+  "app/vidhigya_agent.py": "73c17d875696f097c8c9d954c402dc1fada03acde7aea6a786bad4985a7a3d05",
+  "requirements.txt": "ed587378c919353f7c9530cbc29518b6c41645e67babb7a37b9a6b2d4e684cc6",
+  "app/chunking.py": "85302d877541e6a62cc344e31fc74bab1aaff041f95ad2ee230e3bdbad8d169f",
+  "app/ingest.py": "5ffffe1ecc9c8e76265cf515428d79614683d934520e3a4e2e4354b3d1d31921",
+  "frontend/src/pages/Upload.tsx": "0d222731770002392fc6783e05064f39a5fc0f4033be8a0abc661f7ffc104bf3",
+  "frontend/src/api.ts": "1781e344bef06612859289eba534779c7db5aae7f8c9a74357c892937fea010f",
+  "frontend/src/main.tsx": "8da5b5e0bf9962e77a1051faf710e4ce49f19e7799214303229a930a08ba6874",
+  "frontend/src/components/Shell.tsx": "3d73b77a1c54e826ced3c87aedacd50882c005e36469d4c032a5e4666204bdb8",
+  "frontend/src/i18n.tsx": "b6d6749cc92ce87f2f9d354836df85f9e77e541fa336c5f9a0013263d277d28b"
+ }
+}

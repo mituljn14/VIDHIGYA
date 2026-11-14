@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: dark; }
+html { scroll-behavior: smooth; }
+body { @apply bg-ink-950 text-slate-200 font-sans antialiased; }
+::selection { background: rgba(20, 201, 181, .35); }
+
+/* Marathi text needs a little more line height to keep matras readable */
+.deva { font-family: 'Noto Sans Devanagari', 'Inter', sans-serif; line-height: 1.85; }
+
+@layer components {
+  .glass { @apply bg-white/[0.04] backdrop-blur-xl border border-white/10 rounded-2xl; }
+  .glass-strong { @apply bg-ink-850/80 backdrop-blur-2xl border border-white/10 rounded-2xl; }
+  .btn-primary { @apply relative inline-flex items-center gap-2 overflow-hidden rounded-full px-6 py-3 font-semibold text-ink-950
+    bg-gradient-to-r from-electric-400 via-electric-300 to-violet-400 shadow-glow transition hover:brightness-110 hover:-translate-y-0.5 active:scale-[.98]
+    disabled:opacity-40 disabled:cursor-not-allowed; }
+  .btn-primary::after { content: ''; @apply absolute inset-y-0 left-0 w-1/3 bg-white/40 animate-shine; }
+  .btn-ghost { @apply inline-flex items-center gap-2 rounded-full px-6 py-3 font-medium text-slate-200 border border-white/15
+    hover:bg-white/5 hover:border-white/30 transition; }
+  .chip { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium border; }
+  .eyebrow { @apply text-xs uppercase tracking-[0.25em] text-electric-300/80 font-medium; }
+  .h-section { @apply font-display text-3xl md:text-5xl font-semibold tracking-tight text-white; }
+  .muted { @apply text-slate-400; }
+  .cite { @apply inline-flex items-center rounded-md px-1.5 py-0.5 mx-0.5 text-[11px] font-mono font-medium align-middle
+    bg-electric-500/15 text-electric-300 border border-electric-400/30 hover:bg-electric-500/30 cursor-pointer transition; }
+}
+
+.grid-bg {
+  background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+.text-gradient { background: linear-gradient(100deg, #e9fffb 0%, #8ff5e8 35%, #3fe6d2 55%, #ffbf57 85%, #ffd89a 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.scroll-thin::-webkit-scrollbar { width: 6px; } .scroll-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 6px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* animated gradient border: wrap content in .gborder > .gborder-in */
+.gborder { position: relative; border-radius: 1rem; padding: 1px; overflow: hidden; }
+.gborder::before { content: ''; position: absolute; inset: -150%; background: conic-gradient(from 0deg, transparent 0 70%, #3fe6d2 80%, #ffbf57 90%, transparent 100%);
+  animation: vg-spin 6s linear infinite; }
+@keyframes vg-spin { to { transform: rotate(360deg); } }
+.gborder-in { position: relative; border-radius: calc(1rem - 1px); background: #0a1218; height: 100%; }
+.noise { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E"); }
