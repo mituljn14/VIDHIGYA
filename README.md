@@ -76,7 +76,7 @@ The full study, including negative results, is in the accompanying research pape
 ## How it works
 
 ```mermaid
-flowchart LR
+flowchart TD
     Q[Question<br/>Marathi / English / mixed] --> L{Mostly<br/>Devanagari?}
     L -- no --> T[Translate once to Marathi<br/>legal glossary, numbers kept]
     L -- yes --> U
