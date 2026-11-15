@@ -1,13 +1,18 @@
 // Typed client for the VIDHIGYA FastAPI backend. Every value shown in the UI comes from these endpoints.
 export type Judgment = { document_id: string; case_title?: string | null; case_number?: string | null; court?: string | null;
   decision_date?: string | null; case_type?: string | null; language?: string | null; page_count?: number | null; file_name?: string | null }
-export type Evidence = { evidence_id: string; rank: number; chunk_id: string; document_id: string; passage: string; score: number | null; judgment: Judgment | null }
+export type Evidence = { evidence_id: string; rank: number; chunk_id: string; document_id: string; passage: string; score: number | null; judgment: Judgment | null;
+  pages?: number[] }
+// one judgment behind an answer: its PDF and the pages of the passages the answer cites from it
+export type Source = { document_id: string; judgment: Judgment | null; cited: boolean; cited_ids: string[]; evidence_ids: string[];
+  pages: number[]; first_page: number | null; pdf_available: boolean; pdf_url: string }
 export type Claim = { idx: number; claim: string; cited: string[]; supported: number; reason: string }
 export type RunEvent = { ts: number; stage: string; message: string }
 export type Run = { run_id: string; created_at: string; question: string; status: 'queued' | 'running' | 'done' | 'error' | 'interrupted';
   stage: string; outcome: string | null; answer: string | null; citations: string[] | null; raw_answer: string | null;
   gate: { blocked: boolean; reason: string | null; mode?: string; case_gate?: string | null } | null; config: Record<string, string> | null;
-  timings: Record<string, number> | null; error: string | null; saved: number; agent: AgentInfo | null; evidence: Evidence[]; claims: Claim[]; events: RunEvent[] }
+  timings: Record<string, number> | null; error: string | null; saved: number; agent: AgentInfo | null; evidence: Evidence[]; claims: Claim[]; events: RunEvent[];
+  sources?: Source[] }
 export type AgentTask = { task_id: string; question: string; followup_queries?: string[] }
 export type Coverage = { task_id: string; status: 'supported' | 'partial' | 'missing'; supporting_ids: string[]; missing: string }
 export type AgentInfo = { tasks: AgentTask[]; analysis: { is_multi_part: boolean; accepted: string[]; rejected: string[]; fallback: boolean } | null;
@@ -53,7 +58,9 @@ export const api = {
   searchJudgments: (q: string) => j<Judgment[]>(`/api/judgments?q=${encodeURIComponent(q)}`),
   translate: (id: string, lang: string) => j<{ lang: string; text: string; model: string; cached: boolean }>(`/api/research/${id}/translate?lang=${lang}`, { method: 'POST' }),
   exportUrl: (id: string) => `/api/research/${id}/export`,
-  pdfUrl: (doc: string) => `/api/judgments/${doc}/pdf`,
+  // PDF of a judgment; page opens the browser's PDF viewer at that page, download saves the file
+  pdfUrl: (doc: string, page?: number | null) => `/api/judgments/${doc}/pdf${page ? `#page=${page}` : ''}`,
+  pdfDownloadUrl: (doc: string) => `/api/judgments/${doc}/pdf?download=1`,
   // live stage events (Server-Sent Events); returns a function that closes the stream
   events: (id: string, onEvent: (e: RunEvent) => void, onEnd: () => void) => {
     const es = new EventSource(`/api/research/${id}/events`)

@@ -41,6 +41,7 @@ VIDHIGYA treats **sufficient evidence as a precondition for answering**:
 | **Hybrid search** | BM25 and multilingual-E5 are fused with Reciprocal Rank Fusion. bge-reranker-v2-m3 then rescores the results, and the best paragraphs are selected inside the top judgments. |
 | **Agentic research** | A bounded LangGraph agent splits the question into tasks, checks evidence coverage per task, and searches again for gaps. |
 | **Cited answers** | Every sentence carries an evidence label (E001, E002, …) that opens the exact passage, the judgment and its PDF. |
+| **Source PDFs with every answer** | Each answer lists the original judgment PDFs it cites. Each one opens at the page the cited passage comes from, can be downloaded, and can be previewed inline. Page numbers come from the page markers stored with each passage. |
 | **Claim verification** | The draft answer is split into claims. Each claim is checked against only the passages it cites, and unsupported claims are removed. |
 | **Fail-closed gate** | The system answers only if the case check passes, the coverage check passes and at least one claim is verified; otherwise it abstains with a coded reason. |
 | **Upload new judgments** | An administrator uploads a PDF. Damaged pages are re-read with OCR, the judgment is chunked with ACPMC and indexed, and it becomes searchable at once without touching the frozen corpus index. |
@@ -130,7 +131,8 @@ This is the research workspace. The answer page has five parts:
 - **Answer card:**
   - the answer, with clickable evidence labels;
   - a switch to read it in English, Marathi or Hindi (citation labels must survive the translation);
-  - totals for judgments, passages, verified claims and time.
+  - totals for judgments, passages, verified claims and time;
+  - **Source judgments (PDF):** every judgment the answer cites, with its evidence labels and the PDF pages they come from. Each judgment has buttons to **Open at p. N** (the original PDF at the cited page), **Download PDF**, and **Preview** (the PDF inside the page). When the system abstains, the same panel lists the judgments it consulted.
 - **Citation & evidence explorer:** every passage the agent used, with its judgment, chunk ID and rank. Each passage has *Show full passage*, *Open judgment* and *PDF* links.
 - **Right column:** the run's checks.
   - **Agent trace:** the sub-questions and the evidence that covered each one.
@@ -281,13 +283,14 @@ Every setting in `backend/app/config.py` can be overridden with an environment v
 | GET | `/api/health` | Component status, loaded models, and whether the generator is the validated one |
 | POST | `/api/research` | Start a research run (returns 202 and a run ID) |
 | GET | `/api/research` | List runs |
-| GET | `/api/research/{id}` | Full run: answer, evidence, claims, gate, timings |
+| GET | `/api/research/{id}` | Full run: answer, evidence (with PDF pages), claims, gate, timings, and `sources` (the cited judgments with PDF link, pages and evidence labels) |
 | GET | `/api/research/{id}/events` | Live stage events (Server-Sent Events) |
 | POST | `/api/research/{id}/save` | Save or unsave a run |
 | POST | `/api/research/{id}/translate` | Read the answer in another language (citation labels checked) |
-| GET | `/api/research/{id}/export` | Export the run as a text report |
+| GET | `/api/research/{id}/export` | Export the run as a text report, including links to the source PDFs at the cited pages |
 | DELETE | `/api/research/{id}` | Delete a run |
-| GET | `/api/judgments`, `/api/judgments/{doc}`, `/api/judgments/{doc}/pdf` | Judgment list, metadata and passages, source PDF |
+| GET | `/api/judgments`, `/api/judgments/{doc}` | Judgment list; metadata and passages |
+| GET | `/api/judgments/{doc}/pdf` | Source PDF shown in the browser (add `#page=N` to open at a page); `?download=1` saves it, named after the case number |
 | GET | `/api/models`, POST `/api/models/select` | List local models and choose the generator |
 | POST | `/api/uploads/login`, `/api/uploads/logout` | Administrator session |
 | POST, GET, DELETE | `/api/uploads`, `/api/uploads/{doc}` | Upload, list, inspect or remove a judgment (administrator only) |

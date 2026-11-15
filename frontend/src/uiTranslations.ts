@@ -151,4 +151,10 @@ export const UI: [string, string, string][] = [
   ['— fair-to-moderate; results are automatic, not human legal review.', '— साधारण ते मध्यम; निकाल स्वयंचलित, मानवी कायदेशीर तपासणी नाही.', '— सामान्य से मध्यम; परिणाम स्वचालित, मानवीय कानूनी समीक्षा नहीं.'],
   // run view, experiments page, fast mode
   ['Fast mode', 'जलद पद्धत', 'तेज़ मोड'],
+  // source judgment PDFs under the answer
+  ['Source judgments (PDF)', 'स्रोत निकाल (PDF)', 'स्रोत निर्णय (PDF)'], ['Judgments consulted (PDF)', 'तपासलेले निकाल (PDF)', 'देखे गए निर्णय (PDF)'],
+  ['The original judgment PDFs this answer cites, opened at the cited pages.', 'या उत्तरात संदर्भित केलेल्या मूळ निकालांच्या PDF, संदर्भित पानावर उघडतात.', 'इस उत्तर में उद्धृत मूल निर्णयों की PDF, उद्धृत पृष्ठ पर खुलती हैं.'],
+  ['No answer was released; these are the judgments the evidence came from.', 'उत्तर दिले गेले नाही; पुरावे या निकालांमधून घेतले होते.', 'कोई उत्तर नहीं दिया गया; साक्ष्य इन निर्णयों से लिए गए थे.'],
+  ['Open PDF', 'PDF उघडा', 'PDF खोलें'], ['Download PDF', 'PDF डाउनलोड करा', 'PDF डाउनलोड करें'], ['Preview', 'पूर्वावलोकन', 'पूर्वावलोकन'],
+  ['Hide preview', 'पूर्वावलोकन लपवा', 'पूर्वावलोकन छिपाएँ'], ['PDF not available on this server', 'या सर्व्हरवर PDF उपलब्ध नाही', 'इस सर्वर पर PDF उपलब्ध नहीं'],
 ]

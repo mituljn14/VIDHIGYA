@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { AlertTriangle, Bookmark, BookmarkCheck, CheckCircle2, ChevronDown, Download, ExternalLink, FileText, Gavel, Loader2, ScrollText, ShieldAlert, ShieldCheck, Timer, XCircle } from 'lucide-react'
-import { api, isDeva, type Evidence, type Run, type RunEvent } from '../api'
+import { api, isDeva, type Evidence, type Run, type RunEvent, type Source } from '../api'
 import PipelineViz from './PipelineViz'
 import AgentTrace from './AgentTrace'
 import { stageIndex } from '../pipeline'
@@ -79,9 +79,43 @@ function EvidenceCard({ e, on, cited, onSelect }: { e: Evidence; on: boolean; ci
       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
         <button onClick={() => setOpen(!open)} className="text-electric-300 hover:underline">{open ? t('show_less') : t('show_full')}</button>
         <Link to={`/judgments/${e.document_id}?chunk=${e.chunk_id}`} className="inline-flex items-center gap-1 text-slate-400 hover:text-white"><FileText size={12} />{t('open_judgment')}</Link>
-        <a href={api.pdfUrl(e.document_id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-slate-400 hover:text-white"><ExternalLink size={12} />PDF</a>
+        <a href={api.pdfUrl(e.document_id, e.pages?.[0])} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-slate-400 hover:text-white"><ExternalLink size={12} />PDF{e.pages?.length ? ` · p. ${e.pages.join('–')}` : ''}</a>
       </div>
     </motion.div>
+  )
+}
+
+const pageList = (p: number[]) => (p.length ? `${p.length === 1 ? 'page' : 'pages'} ${p.join(', ')}` : 'pages not recorded')
+
+// The source PDFs behind the answer: every judgment it cites (or, for an abstention, the judgments that were consulted),
+// opened at the cited page, downloadable, and previewable inline.
+function SourcePdfs({ sources, answered, onCite }: { sources: Source[]; answered: boolean; onCite: (id: string) => void }) {
+  const [preview, setPreview] = useState<string | null>(null)
+  const shown = answered ? sources.filter((s) => s.cited) : sources
+  if (!shown.length) return null
+  const open = shown.find((s) => s.document_id === preview)
+  return (
+    <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+      <div className="flex flex-wrap items-baseline gap-2"><div className="eyebrow flex items-center gap-2"><FileText size={14} />{answered ? 'Source judgments (PDF)' : 'Judgments consulted (PDF)'}</div>
+        <span className="text-xs text-slate-500">{answered ? 'The original judgment PDFs this answer cites, opened at the cited pages.' : 'No answer was released; these are the judgments the evidence came from.'}</span></div>
+      <ul className="mt-3 space-y-2">{shown.map((s) => { const j = s.judgment; const ids = s.cited_ids.length ? s.cited_ids : s.evidence_ids
+        return (<li key={s.document_id} className={`rounded-xl border p-3 transition ${preview === s.document_id ? 'border-electric-400/50 bg-electric-500/[0.05]' : 'border-white/[0.07]'}`}>
+          <div className="flex flex-wrap items-start gap-3">
+            <div className="min-w-0 flex-1">
+              <Link to={`/judgments/${s.document_id}`} className="block text-sm font-medium text-white hover:underline">{j?.case_title || `Judgment ${s.document_id}`}</Link>
+              <div className="mt-0.5 text-xs text-slate-400">{[j?.case_number, j?.court, j?.decision_date].filter(Boolean).join(' · ') || s.document_id}</div>
+              <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+                {ids.map((id) => <button key={id} onClick={() => onCite(id)} className="cite">{id}</button>)}<span>· {pageList(s.pages)}</span></div>
+            </div>
+            {s.pdf_available ? (<div className="flex flex-wrap gap-2">
+              <a href={api.pdfUrl(s.document_id, s.first_page)} target="_blank" rel="noreferrer" className="btn-ghost px-3 py-1.5 text-xs"><ExternalLink size={13} />{s.first_page ? `Open at p. ${s.first_page}` : 'Open PDF'}</a>
+              <a href={api.pdfDownloadUrl(s.document_id)} className="btn-ghost px-3 py-1.5 text-xs"><Download size={13} />Download PDF</a>
+              <button onClick={() => setPreview(preview === s.document_id ? null : s.document_id)} className="btn-ghost px-3 py-1.5 text-xs">{preview === s.document_id ? <ChevronDown size={13} className="rotate-180" /> : <ChevronDown size={13} />}{preview === s.document_id ? 'Hide preview' : 'Preview'}</button>
+            </div>) : <span className="text-xs text-warn">PDF not available on this server</span>}
+          </div>
+        </li>) })}</ul>
+      {open && <iframe key={open.document_id} title={`PDF of ${open.document_id}`} src={api.pdfUrl(open.document_id, open.first_page)} className="mt-3 h-[75vh] w-full rounded-xl border border-white/10 bg-white" />}
+    </div>
   )
 }
 
@@ -163,6 +197,7 @@ export default function RunView({ runId, onChange }: { runId: string; onChange: 
               [ShieldCheck, `${supported} / ${run.claims.length} claims`, 'supported by cited evidence'], [Timer, run.timings?.total_ms ? `${(run.timings.total_ms / 1000).toFixed(0)} s` : '—', 'end-to-end on this machine']].map(([I, a, b], i) => {
               const Icon = I as typeof Gavel; return (<div key={i} className="rounded-xl bg-white/[0.03] p-3"><div className="flex items-center gap-2 text-white"><Icon size={15} className="text-electric-300" />{a as string}</div><div className="mt-1 text-xs text-slate-500">{b as string}</div></div>) })}
           </div>
+          <SourcePdfs sources={run.sources ?? []} answered={run.outcome === 'answered'} onCite={(id) => { setActive(id); setClaimSel(null) }} />
         </div>
 
         <div className="grid gap-5 xl:grid-cols-[1.25fr_1fr]">

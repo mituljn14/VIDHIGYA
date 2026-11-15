@@ -3,7 +3,7 @@ research result files at request time (never hard-coded)."""
 from __future__ import annotations
 import os
 os.environ.setdefault('HF_HUB_OFFLINE', '1')  # cached models only: no network checks at start-up
-import asyncio, csv, json, os, threading
+import asyncio, csv, json, os, re, threading
 from pathlib import Path
 from datetime import datetime, timezone
 from fastapi import Depends, FastAPI, File, Header, HTTPException, Request, UploadFile
@@ -28,6 +28,62 @@ class ResearchIn(BaseModel):
     question: str = Field(min_length=5, max_length=2000)
 
 
+_PAGE = re.compile(r'<!--\s*PAGE\s+(\d+)\s*-->')
+
+
+def _passage_pages(con, ev):
+    """chunk_id -> PDF pages the stored passage spans. Corpus chunks carry '<!-- PAGE n -->' markers; a chunk that starts
+    mid-page continues the last page marked in the earlier chunks of the same judgment. Uploaded chunks store their pages."""
+    out = {}
+    for doc in {e['document_id'] for e in ev}:
+        want = {e['chunk_id'] for e in ev if e['document_id'] == doc}
+        if doc.startswith('up_'):
+            for r in U.db().execute(f"SELECT chunk_id, pages FROM upload_chunks WHERE chunk_id IN ({','.join('?' * len(want))})", list(want)):
+                try:
+                    out[r['chunk_id']] = sorted({int(p) for p in json.loads(r['pages'] or '[]')})
+                except (TypeError, ValueError):
+                    out[r['chunk_id']] = []
+            continue
+        current = None
+        for r in con.execute('SELECT chunk_id, text FROM chunks WHERE document_id=? ORDER BY chunk_id', (doc,)):
+            text = r['text'] or ''
+            own = [int(p) for p in _PAGE.findall(text)]
+            if r['chunk_id'] in want:
+                lead = [] if _PAGE.match(text.lstrip()) or current is None else [current]
+                out[r['chunk_id']] = sorted(set(lead + own))
+            if own:
+                current = own[-1]
+    return out
+
+
+def _pdf_path(doc):
+    if doc.startswith('up_'):
+        return Path(C.UPLOADS_DIR) / 'pdfs' / f'{doc}.pdf'
+    j = P.db().execute('SELECT file_name FROM judgments WHERE document_id=?', (doc,)).fetchone()
+    return Path(C.PDF_DIR) / j['file_name'] if j and j['file_name'] else None
+
+
+def _sources(ev, cited):
+    """One entry per judgment in the evidence: its PDF, the passages the answer cites from it and the pages they are on.
+    Judgments cited by the answer come first, in order of their best-ranked passage."""
+    by = {}
+    for e in ev:
+        s = by.setdefault(e['document_id'], {'document_id': e['document_id'], 'judgment': e.get('judgment'), 'evidence_ids': [],
+                                              'cited_ids': [], 'pages': set(), 'best_rank': e['rank']})
+        s['evidence_ids'].append(e['evidence_id'])
+        if e['evidence_id'] in cited:
+            s['cited_ids'].append(e['evidence_id'])
+    for s in by.values():
+        use = s['cited_ids'] or s['evidence_ids']
+        s['pages'] = sorted({p for e in ev if e['evidence_id'] in use for p in e.get('pages', [])})
+        s['first_page'] = s['pages'][0] if s['pages'] else None
+        s['cited'] = bool(s['cited_ids'])
+        p = _pdf_path(s['document_id'])
+        s['pdf_available'] = bool(p and p.exists())
+        s['pdf_url'] = f"/api/judgments/{s['document_id']}/pdf"
+    return sorted(by.values(), key=lambda s: (not s['cited'], s['best_rank']))
+
+
 def _run_json(run_id):
     con = P.db(); r = con.execute('SELECT * FROM research_runs WHERE run_id=?', (run_id,)).fetchone()
     if not r:
@@ -43,7 +99,11 @@ def _run_json(run_id):
             meta[e['document_id']] = U.judgment(e['document_id'])
     for e in ev:
         e['judgment'] = meta.get(e['document_id'])
+    pages = _passage_pages(con, ev)
+    for e in ev:
+        e['pages'] = pages.get(e['chunk_id'], [])
     d['evidence'] = ev
+    d['sources'] = _sources(ev, set(d.get('citations') or []))
     d['claims'] = [dict(x, cited=json.loads(x['cited'])) for x in con.execute('SELECT * FROM run_claims WHERE run_id=? ORDER BY idx', (run_id,))]
     d['events'] = [dict(x) for x in con.execute('SELECT ts, stage, message FROM run_events WHERE run_id=? ORDER BY ts', (run_id,))]
     return d
@@ -177,10 +237,17 @@ def translate(run_id: str, lang: str):
 
 
 @app.get('/api/research/{run_id}/export', response_class=PlainTextResponse)
-def export(run_id: str):
-    d = _run_json(run_id)
+def export(run_id: str, request: Request):
+    d = _run_json(run_id); base = str(request.base_url).rstrip('/')
     L = [f"# VIDHIGYA research report", '', f"**Question:** {d['question']}", f"**Run:** {d['run_id']}  ·  {d['created_at']}  ·  outcome: {d['outcome']}",
-         f"**Configuration:** {json.dumps(d['config'], ensure_ascii=False)}", '', '## Answer', '', d['answer'] or '(no answer)', '', '## Evidence']
+         f"**Configuration:** {json.dumps(d['config'], ensure_ascii=False)}", '', '## Answer', '', d['answer'] or '(no answer)', '', '## Source judgments (PDF)', '']
+    for s in d['sources']:
+        j = s.get('judgment') or {}
+        where = f"pages {', '.join(map(str, s['pages']))}" if s['pages'] else 'pages not recorded'
+        link = f"{base}{s['pdf_url']}#page={s['first_page'] or 1}" if s['pdf_available'] else '(PDF not available)'
+        L.append(f"- {'Cited' if s['cited'] else 'Consulted'}: {j.get('case_title') or s['document_id']} ({j.get('case_number') or s['document_id']}) — "
+                 f"{', '.join(s['cited_ids'] or s['evidence_ids'])}, {where} — {link}")
+    L += ['', '## Evidence']
     for e in d['evidence']:
         j = e.get('judgment') or {}
         L += ['', f"### [{e['evidence_id']}] {j.get('case_title') or e['document_id']}", f"{j.get('court', '')} · {j.get('case_number', '')} · {j.get('decision_date', '')} · chunk {e['chunk_id']}", '', e['passage']]
@@ -205,17 +272,18 @@ def judgment(doc: str):
 
 
 @app.get('/api/judgments/{doc}/pdf')
-def judgment_pdf(doc: str):
-    if doc.startswith('up_'):
-        p = Path(C.UPLOADS_DIR) / 'pdfs' / f'{doc}.pdf'
-        if not U.judgment(doc) or not p.exists():
-            raise HTTPException(404, 'PDF not available')
-        return FileResponse(p, media_type='application/pdf')
-    j = P.db().execute('SELECT file_name FROM judgments WHERE document_id=?', (doc,)).fetchone()
-    p = Path(C.PDF_DIR) / (j['file_name'] if j else '_')
-    if not j or not p.exists():
+def judgment_pdf(doc: str, download: bool = False):
+    """Source PDF of a judgment, shown in the browser; ?download=1 saves it under a name built from the case number."""
+    if doc.startswith('up_') and not U.judgment(doc):
         raise HTTPException(404, 'PDF not available')
-    return FileResponse(p, media_type='application/pdf')
+    p = _pdf_path(doc)
+    if not p or not p.exists():
+        raise HTTPException(404, 'PDF not available')
+    if not download:
+        return FileResponse(p, media_type='application/pdf')
+    j = (U.judgment(doc) if doc.startswith('up_') else dict(P.db().execute('SELECT case_number FROM judgments WHERE document_id=?', (doc,)).fetchone() or {})) or {}
+    name = re.sub(r'[^\w.-]+', '_', (j.get('case_number') or '').strip()).strip('_')
+    return FileResponse(p, media_type='application/pdf', filename=f"VIDHIGYA_{name + '_' if name else ''}{doc}.pdf")
 
 
 @app.get('/api/judgments')
