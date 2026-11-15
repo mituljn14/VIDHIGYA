@@ -9,3 +9,4 @@ qdrant-client>=1.9
 pypdfium2>=4.30
 easyocr>=1.7
 python-multipart>=0.0.9
+langgraph>=1.0
