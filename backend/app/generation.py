@@ -120,5 +120,9 @@ def answer(question, ev, emit=lambda s, m: None):
         outcome = 'abstained_gate' if blocked else ('abstained_no_verified_claim' if parsed and parsed.get('schema_valid') else 'abstained_invalid_output')
     else:
         outcome = 'answered'
-    return {'raw': raw, 'parsed': parsed, 'final': final, 'reviews': reviews, 'gate': {'blocked': blocked, 'reason': why, 'mode': C.GATE},
+    # gate = the final release decision (as in the agent path): blocked whenever the run abstains, with the reason;
+    # case_gate keeps the case-check detail on its own
+    reason = None if outcome == 'answered' else ('case_gate:' + why if blocked else outcome.removeprefix('abstained_'))
+    return {'raw': raw, 'parsed': parsed, 'final': final, 'reviews': reviews,
+            'gate': {'blocked': reason is not None, 'reason': reason, 'case_gate': why, 'mode': C.GATE},
             'outcome': outcome, 'timings': T}

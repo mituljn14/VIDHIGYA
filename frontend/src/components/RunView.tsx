@@ -10,6 +10,24 @@ import { outcomeChip } from '../pages/Workspace'
 import { LANG_NAMES, useI18n, type Lang } from '../i18n'
 import { Languages } from 'lucide-react'
 
+// Release decision shown in the gate box. It follows the run's final outcome, because runs stored by the older pipeline
+// recorded only the case check in gate.blocked: a run could abstain (every claim removed by verification) with blocked = false.
+const GATE_REASONS: Record<string, string> = {
+  case_gate: 'the evidence does not name the case the question asks about',
+  gate: 'the evidence does not name the case the question asks about',
+  no_task_covered: 'the evidence covered none of the tasks of the question',
+  no_verified_claim: 'no claim of the draft answer was supported by the passages it cited',
+  invalid_output: 'the model did not return an answer in the required cited format',
+}
+function gateText(run: Run): string {
+  if (run.status === 'error' || run.status === 'interrupted') return 'Not reached — the run stopped before the release decision.'
+  if (!run.outcome) return 'Waiting — the decision is made after claim verification.'
+  if (run.outcome === 'answered') return 'Passed — case check, coverage check and claim verification all allowed the answer.'
+  const code = (run.gate?.blocked && run.gate.reason ? run.gate.reason : run.outcome.replace(/^abstained_/, '')).split(':')[0]
+  const detail = run.gate?.reason?.startsWith('case_gate:') ? ` (${run.gate.reason.slice('case_gate:'.length).replace(/_/g, ' ')})` : ''
+  return `Blocked — ${GATE_REASONS[code] ?? code.replace(/_/g, ' ')}${detail}. The system abstained instead of answering.`
+}
+
 // Render an answer with [E001] markers turned into clickable citation chips.
 function CitedText({ text, onCite, active }: { text: string; onCite: (id: string) => void; active: string | null }) {
   const parts = text.split(/(\[E\d{3}\])/g)
@@ -168,7 +186,7 @@ export default function RunView({ runId, onChange }: { runId: string; onChange: 
             </div>
             <div className="glass p-5">
               <div className="eyebrow mb-3">{t('gate')}</div>
-              <p className="text-sm text-slate-300">{run.gate?.blocked ? <>Blocked — {run.gate.reason?.replace(/[_:]/g, ' ')}.</> : 'Passed — case check, coverage check and claim verification all allowed the answer.'}</p>
+              <p className="text-sm text-slate-300">{gateText(run)}</p>
             </div>
             <div className="glass p-5">
               <div className="eyebrow mb-3">{t('timing')}</div>

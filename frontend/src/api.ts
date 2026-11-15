@@ -6,7 +6,7 @@ export type Claim = { idx: number; claim: string; cited: string[]; supported: nu
 export type RunEvent = { ts: number; stage: string; message: string }
 export type Run = { run_id: string; created_at: string; question: string; status: 'queued' | 'running' | 'done' | 'error' | 'interrupted';
   stage: string; outcome: string | null; answer: string | null; citations: string[] | null; raw_answer: string | null;
-  gate: { blocked: boolean; reason: string | null; mode: string } | null; config: Record<string, string> | null;
+  gate: { blocked: boolean; reason: string | null; mode?: string; case_gate?: string | null } | null; config: Record<string, string> | null;
   timings: Record<string, number> | null; error: string | null; saved: number; agent: AgentInfo | null; evidence: Evidence[]; claims: Claim[]; events: RunEvent[] }
 export type AgentTask = { task_id: string; question: string; followup_queries?: string[] }
 export type Coverage = { task_id: string; status: 'supported' | 'partial' | 'missing'; supporting_ids: string[]; missing: string }

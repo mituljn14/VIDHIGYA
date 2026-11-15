@@ -20,8 +20,11 @@ PAGES = [  # (file, route, full page?)
 with sync_playwright() as p:
     b = p.chromium.launch(channel='chrome')
     pg = b.new_page(viewport={'width': 1440, 'height': 900}, color_scheme='dark', device_scale_factor=1)
+    only = sys.argv[2:]  # optional file names to recapture, e.g. 03_ask_abstention.png
     for name, route, full in PAGES:
-        pg.goto(BASE + route, wait_until='networkidle')
+        if only and name not in only:
+            continue
+        pg.goto(BASE + route, wait_until='load', timeout=60000)
         pg.wait_for_timeout(2500)  # entrance animations
         if full:  # sections animate in when scrolled into view
             h = pg.evaluate('document.documentElement.scrollHeight')
